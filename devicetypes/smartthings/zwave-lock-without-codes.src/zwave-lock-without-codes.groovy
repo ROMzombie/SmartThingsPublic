@@ -30,7 +30,6 @@ metadata {
 		fingerprint mfr: "021D", prod: "0003", model: "0001", deviceJoinName: "Alfred Door Lock" // DB2 //Alfred Smart Home Touchscreen Deadbolt
 		//zw:Fs type:4001 mfr:0154 prod:0005 model:0001 ver:1.05 zwv:4.38 lib:03 cc:7A,73,80,5A,98 sec:5E,86,72,30,71,70,59,85,62
 		fingerprint mfr: "0154", prod: "0005", model: "0001", deviceJoinName: "POPP Door Lock" // POPP Strike Lock Control POPE012501
-		fingerprint mfr: "003B", prod: "0001", model: "0469", deviceJoinName: "Schlage Door Lock" //BE469ZP //Schlage Connect Smart Deadbolt Door Lock
 	}
 
 	simulator {
@@ -279,7 +278,6 @@ def zwaveEvent(DoorLockOperationReport cmd) {
 
 	// DoorLockOperationReport is called when trying to read the lock state or when the lock is locked/unlocked from the DTH or the smart app
 	def map = [name: "lock"]
-	map.data = [lockName: device.displayName]
 	if (cmd.doorLockMode == 0xFF) {
 		map.value = "locked"
 		map.descriptionText = "Locked"
@@ -384,11 +382,6 @@ private def handleAccessAlarmReport(cmd) {
 	}
 
 	if (map) {
-		if (map.data) {
-			map.data.lockName = deviceName
-		} else {
-			map.data = [lockName: deviceName]
-		}
 		result << createEvent(map)
 	}
 	result = result.flatten()
@@ -415,10 +408,10 @@ private def handleBatteryAlarmReport(cmd) {
 			result << response(secure(zwave.batteryV1.batteryGet()))
 			break;
 		case 0x0A:
-			map = [name: "battery", value: 1, descriptionText: "Battery level critical", displayed: true, data: [lockName: deviceName]]
+			map = [name: "battery", value: 1, descriptionText: "Battery level critical", displayed: true]
 			break
 		case 0x0B:
-			map = [name: "battery", value: 0, descriptionText: "Battery too low to operate lock", isStateChange: true, displayed: true, data: [lockName: deviceName]]
+			map = [name: "battery", value: 0, descriptionText: "Battery too low to operate lock", isStateChange: true, displayed: true]
 			break
 		default:
 			map = [displayed: false, descriptionText: "Alarm event ${cmd.alarmType} level ${cmd.alarmLevel}"]
@@ -513,11 +506,6 @@ private def handleAlarmReportUsingAlarmType(cmd) {
 	}
 
 	if (map) {
-		if (map.data) {
-			map.data.lockName = deviceName
-		} else {
-			map.data = [ lockName: deviceName ]
-		}
 		result << createEvent(map)
 	}
 	result = result.flatten()

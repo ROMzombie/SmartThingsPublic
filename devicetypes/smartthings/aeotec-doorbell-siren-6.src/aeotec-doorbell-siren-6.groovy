@@ -14,7 +14,7 @@
  *
  */
 metadata {
-	definition(name: "Aeotec Doorbell Siren 6", namespace: "smartthings", author: "SmartThings", mcdSync: true) {
+	definition(name: "Aeotec Doorbell Siren 6", namespace: "smartthings", author: "SmartThings", mcdSync: true, mnmn: "SmartThings", vid: "SmartThings-smartthings-Aeotec_Doorbell_Siren_6") {
 		capability "Actuator"
 		capability "Health Check"
 		capability "Tamper Alert"
@@ -347,7 +347,7 @@ private mcEncap(cmd) {
 			device.updateSetting("sirenDoorbellSend", [value:"false",type:"bool"]) //reset preference toggle button when leaving setting page
 			return response(zwave.securityV1.securityMessageEncapsulation().encapsulate(cmd).format()) //used to process Sound Switch Configuration SET
 		} else {
-			cmd.format()
+			return response(cmd.format()) //used to process Sound Switch Configuration SET when S2_FAILED or non-secure.
 		}
 	}
 }

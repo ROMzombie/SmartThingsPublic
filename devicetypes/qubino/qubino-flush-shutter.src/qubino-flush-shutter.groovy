@@ -12,6 +12,7 @@
  *	for the specific language governing permissions and limitations under the License.
  *
  */
+import groovy.json.JsonOutput
 
 metadata {
 	definition (name: "Qubino Flush Shutter", namespace: "qubino", author: "SmartThings", ocfDeviceType: "oic.d.blind", mcdSync: true) {
@@ -92,7 +93,7 @@ def installed() {
 		state.currentPreferencesState."$it.key".status = "synced"
 	}
 	// Preferences template end
-	sendEvent(name: "supportedWindowShadeCommands", value: ["open", "close", "pause"])
+	sendEvent(name: "supportedWindowShadeCommands", value: JsonOutput.toJson(["open", "close", "pause"]))
 }
 
 def updated() {
@@ -251,12 +252,16 @@ def setShadeLevel(level) {
 }
 
 def setSlats(level) {
-	def time = (int) (state.timeOfVenetianMovement  * 1.1)
+	def time = (int) (state.timeOfVenetianMovement * 1.1)
 	sendHubCommand([
 			encap(zwave.switchMultilevelV3.switchMultilevelSet(value: Math.min(0x63, level)), 2),
 			"delay ${time}",
 			encap(zwave.switchMultilevelV3.switchMultilevelGet(), 2)
 	])
+}
+
+def resetEnergyMeter() {
+	log.debug "resetEnergyMeter: not implemented"
 }
 
 def refresh() {
@@ -368,7 +373,11 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd, ep = null) 
 				events += createEvent([name: "windowShade", value: state.blindsLastCommand])
 				events += createEvent([name: "shadeLevel", value: state.shadeTarget, displayed: false])
 			} else {
-				events += response(encap(zwave.switchMultilevelV3.switchMultilevelGet()))
+				events += response([
+						encap(zwave.switchMultilevelV3.switchMultilevelGet()),
+						"delay 500",
+						encap(zwave.meterV3.meterGet(scale: 0x00))
+				])
 			}
 		}
 	}
